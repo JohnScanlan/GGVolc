@@ -1,0 +1,37 @@
+poscells <- WhichCells(df, expression = Tnfaip3 > 0.75)
+df@meta.data$Tnfaip3_exp <- ifelse(colnames(df) %in% poscells, "Pos", "Neg")
+
+gene_markers <- FindMarkers(df, ident.1 = 'Pos', ident.2 = 'Neg', group.by = 'Tnfaip3_exp', logfc.threshold = 0)
+
+genes_of_interest <- c("Nfkb2",       # NF-κB2 p100/p52 subunit, part of the non-canonical NF-κB complex
+"Relb",        # RelB transcription factor, partners with p52 in non-canonical signaling
+"Map3k14",     # NF-κB-inducing kinase (NIK), acts upstream in non-canonical NF-κB signaling
+"Cd40lg",      # CD40 ligand, expressed on activated T cells and part of T cell-dependent B cell activation
+"Tnfsf11",     # RANKL, involved in the regulation of interactions between T cells and dendritic cells
+"Tnfrsf17",    # BCMA, receptor for BAFF and APRIL, expressed in mature B cells and involved in T cell-B cell interaction
+"Tnfrsf13c",   # BAFF-R, receptor for BAFF, has a role in B cell development which can be modulated by T cells
+"Bcl3",        # B-cell lymphoma 3-encoded protein, can regulate T cell-dependent immune responses
+"Ikbke",       # IKK-epsilon, which can modulate non-canonical NF-κB signaling in T cells
+"Ctla4",       # Cytotoxic T-Lymphocyte Associated Protein 4, negative regulator of T cell activation
+"Cd28",        # CD28, provides co-stimulatory signals required for T cell activation and survival
+"Pdcd1"        # Programmed cell death protein 1, involved in the regulation of T cell function
+)
+
+gene_markers$X <- rownames(gene_markers)
+#attention <- subset(gene_markers, X %in% genes_of_interest)
+attention <- subset(gene_markers, X == genes_of_interest)
+
+gene_markers$pvalue <- gene_markers$p_val_adj
+gene_markers$log2FoldChange <- gene_markers$avg_log2FC
+gene_markers$genes <- gene_markers$X
+
+genes_to_remove <- c('Tnfaip3')
+
+# Filter the data frame
+gene_markers <- gene_markers[!gene_markers$X %in% genes_to_remove, ]
+attention_genes <- gene_markers[gene_markers$X %in% genes_of_interest, ]
+
+#attention <- subset(gene_markers, X %in% genes_of_interest)
+#attention <- subset(gene_markers, X == genes_of_interest)
+
+ggvolc(gene_markers, attention_genes, fc = 0.5, p_value = 0.05)
